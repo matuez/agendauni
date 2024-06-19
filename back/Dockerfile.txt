@@ -1,0 +1,9 @@
+FROM amazoncorretto:21
+
+WORKDIR /uc-back
+
+COPY build/libs/*.jar .
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "uc-back.jar"]

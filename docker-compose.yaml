@@ -1,0 +1,60 @@
+version: "3.8"
+
+services:
+  uc-db:
+    image: postgres:latest
+    container_name: uc-db
+    restart: on-failure
+    env_file:
+      - uc-app-back/.env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    networks: ["uc-backdb"]
+    volumes:
+      - uc-volume:/var/lib/postgresql
+
+  uc-app-back:
+    container_name: uc-back
+    restart: on-failure
+    build:
+      context: ./agenda-uni/uc-back
+      dockerfile: uc-back/Dockerfile
+    depends_on:
+      - uc-db
+    env_file:
+      - uc-back/.env
+    environment:
+      - SPRING_DATASOURCE_URL=${POSTGRES_URL}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    ports:
+      - "8080:8080"
+    networks:
+      - uc-backdb
+      - uc-backfront
+
+  uc-app-front:
+    container_name: uc-front
+    restart: on-failure
+    build:
+      context: ./agenda-uni/uc-front
+      dockerfile: uc-back/Dockerfile
+    depends_on:
+      - uc-db
+      - uc-back
+    ports:
+      - "3000:3000"
+    networks: ["uc-backfront"]
+
+networks:
+  uc-backdb:
+    driver: bridge
+  uc-backfront:
+    driver: bridge
+volumes:
+  uc-volume: {}
